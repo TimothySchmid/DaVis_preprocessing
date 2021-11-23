@@ -79,7 +79,7 @@ classdef ProgressBar < matlab.System
         IsParallel = false;
         
         % Boolean whether to override Windows' monospaced font to cure "growing bar" syndrome
-        OverrideDefaultFont = true;
+        OverrideDefaultFont = false;
     end
     
     properties (Access = private)
