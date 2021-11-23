@@ -67,6 +67,7 @@ EXP.outlier.neighbour   = 3;
     
     cd(experiment_dir)
     files = dir('*.vc7');
+    files(strncmp({files.name}, '.', 1)) = [];
     n = length(files);
 
 % RUN THROUGH FILES
