@@ -93,7 +93,7 @@ for iRead = progress(1:n)
     W0 = vc_struc.Frames{1}.Components{5}.Planes{:};
     H0 = vc_struc.Frames{1}.Components{6}.Planes{:};
     
-    is_valid = vc_struc.Frames{1}.Components{9}.Planes{:};
+    is_valid = vc_struc.Frames{1}.Components{4}.Planes{:};
     
   % Define conservative mask based on is_valid
     U_temp = fct_extract_data(U0, is_valid);
