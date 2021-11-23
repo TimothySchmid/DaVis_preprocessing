@@ -59,6 +59,7 @@ EXP.outlier.neighbour   = 3;
     parent_path = pwd;
     addpath(parent_path)
     addpath([parent_path, '/readimx-v2.1.8-osx'])
+    % addpath([parent_path, '/readimx-v2.1.9'])
     experiment_dir = [path_main '/' EXP.experiment_name];
 
     cd(parent_path)
