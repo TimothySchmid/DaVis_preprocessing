@@ -129,6 +129,7 @@ for iRead = progress(1:n)
   % Write new data as vc structure
     savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
     save(savevar, 'vc_struc')
+    %writeimx(vc_struc, '/B' num2str(iRead,'%5.5d'))
     clearvars savevar vc_struc
 end
 
