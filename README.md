@@ -9,6 +9,9 @@
 Use split_and_rename.py to rename all files in all folders and split experiment data into files used for 
 DIC (folder "double") and topviews (folder "single").
 
+### Experiment foldername
+Optional, but EXP_xxx is recommended
+
 ### Folder structure
 Folder names must obey the following naming convention (case sensitive!):
 
