@@ -10,3 +10,5 @@ Processing uses an outlier detection algorithm (Westerweel and Scarano, 2005) an
 - Outlier detection: Westerweel and Scarano (2005)
 - inpaint_nans: John D'Errico
 - Progress bar class provided by J.-A. Adrian
+
+LaVision's Matlab add on for DaVis is freely available for Windows and Mac OS https://www.lavision.de/de/downloads/software/matlab_add_ons.php
