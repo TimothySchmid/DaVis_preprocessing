@@ -41,6 +41,7 @@ def rename_files(file_list, dic_wild_card, path_name, name_input):
         os.rename(os.path.join(path_name, file),
                   os.path.join(path_name, ''.join([name_now, '.JPG'])))
         
+        
 def copy_files_to_davis(camera_list, src_end, davis_dest):
     """ Copy needed files into defined DaVis folders"""
     for camera_name in camera_list:
@@ -48,7 +49,7 @@ def copy_files_to_davis(camera_list, src_end, davis_dest):
         
         for filename in tqdm(os.listdir(src_dir)):
             if filename.endswith('.JPG'):
-                shutil.copy( src_dir + filename, davis_dest)
+                shutil.copy(src_dir + filename, davis_dest)
         
         
 # CHOOSE DIRECTORY AND SETUP DIRECTORIES
@@ -87,7 +88,6 @@ for camera_name in camera_list:
     for sub_folder_name in folder_list:
         path_sub_folder = os.path.join(path_camera, sub_folder_name)
         
-    
         os.chdir(path_sub_folder)
         cwd = os.getcwd()
         
@@ -125,7 +125,8 @@ for camera_name in camera_list:
 # COPY DOUBLE LIGHT SOURCE FILES INTO DAVIS DIRECTORIES
 # =========================================================================== #
 
-camera_list = ['Door', 'Window'] # could be extended with topview to get 3 cams.
+# could be extended with topview to get 3 cams
+camera_list = ['Door', 'Window']
 
 copy_files_to_davis(camera_list, 'experiment/double/', path_davis_experiment)
 copy_files_to_davis(camera_list, 'calibration/', path_davis_calibration)
