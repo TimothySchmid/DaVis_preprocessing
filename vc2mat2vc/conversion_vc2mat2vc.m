@@ -79,14 +79,16 @@ vc_struc_init = readimx(files(1).name);
 % search for correct places
 loc_u = fct_find_location(vc_struc_init,'U0');
 loc_v = fct_find_location(vc_struc_init,'V0');
-loc_h = fct_find_location(vc_struc_init,'TS:Height');
-loc_m = fct_find_location(vc_struc_init,'MASK');
 
 % check if it is a stereo set
 is_stereo = sum(ismember(vc_struc_init.Frames{1}.ComponentNames,'W0'));
 if is_stereo
-    loc_w = find(ismember(vc_struc_init.Frames{1}.ComponentNames,'W0'));
+    loc_w = fct_find_location(vc_struc_init,'W0');
 end
+
+loc_h = fct_find_location(vc_struc_init,'TS:Height');
+loc_m = fct_find_location(vc_struc_init,'MASK');
+
 
 % RUN THROUGH FILES
 % ----------------------------------------------------------------------- %
@@ -96,7 +98,7 @@ tStart = tic;
 fct_print_statement_start
 fct_print_statement_cleaning
 
-for iRead = progress(n)
+for iRead = progress(1:n)
     
   % get step
     step_now = files(iRead).name;
@@ -129,7 +131,7 @@ for iRead = progress(n)
     U = U_temp;
     V = V_temp;
     W = W_temp;
-    H = H_temp;%- Dev_ext;
+    H = H_temp - Dev_ext;
 
   % control_plot
   fct_check_plot(EXP, V0, V, iRead)
@@ -141,10 +143,10 @@ for iRead = progress(n)
     vc_struc.Frames{1}.Components{6}.Planes = H;
     
   % Write new data as vc structure
-%     savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
-%     save(savevar, 'vc_struc')
-%     %writeimx(vc_struc, '/B' num2str(iRead,'%5.5d'))
-%     clearvars savevar vc_struc
+    savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
+    save(savevar, 'vc_struc')
+    %writeimx(vc_struc, '/B' num2str(iRead,'%5.5d'))
+    clearvars savevar vc_struc
 end
 
 fun_print_statement_finished(tStart)
