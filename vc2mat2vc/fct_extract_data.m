@@ -24,17 +24,20 @@ p2 = is_valid(s1, :);
 p1_start = find(p1, 1, 'first'); p1_end = find(p1, 1, 'last');
 p2_start = find(p2, 1, 'first'); p2_end = find(p2, 1, 'last');
 
-boundaries = [p1_start, p1_end;...
-              p2_start, p2_end];
-          
-% x_lines = [boundaries(2,2), boundaries(2,2), boundaries(2,1),...
-%            boundaries(2,1), boundaries(2,2)];
-%        
-% y_lines = [boundaries(1,1), boundaries(1,2), boundaries(1,2),...
-%            boundaries(1,1), boundaries(1,1)];
+% check for NaNs
+temporal_frame = davis_frame(p1_start:p1_end, p2_start:p2_end);
+gap = 0;
 
-temporal_frame = davis_frame(boundaries(1,1):boundaries(1,2),...
-                             boundaries(2,1):boundaries(2,2));
-
+while isnan(mean(mean(temporal_frame)))
+    
+    boundaries = [p1_start + gap, p1_end - gap;...
+        p2_start + gap, p2_end - gap];
+    
+    temporal_frame = davis_frame(boundaries(1,1):boundaries(1,2),...
+        boundaries(2,1):boundaries(2,2));
+    
+    gap = gap + 1;
+end
+                         
 end
 

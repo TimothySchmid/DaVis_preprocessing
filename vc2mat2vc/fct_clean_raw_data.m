@@ -1,4 +1,4 @@
-function [H0, U0, V0, W0] = fct_clean_raw_data(H0, U0, V0, W0, EXP)
+function [H0, U0, V0, W0] = fct_clean_raw_data(H0, U0, V0, W0, EXP, is_valid)
 %UNTITLED Find wholes inside mask and replace them with zero; pre step for
 % inpaint_nans. This sets only zero values INSIDE the mask to NaN, which
 % drastically reduces computation time. Only after the use of inpaint_nans,
@@ -28,7 +28,11 @@ function [H0, U0, V0, W0] = fct_clean_raw_data(H0, U0, V0, W0, EXP)
     % =================================================================== %
    
     % fill in-mask NaN values =========================================== %
-    [H0, U0, V0, W0] = fct_NaN_fill(H0, U0, V0, W0);
+    [H0, U0, V0, W0] = fct_NaN_fill(H0, U0, V0, W0, is_valid);
+    % =================================================================== %
+    
+    % set out-mask values to NaN =========================================== %
+    [H0, U0, V0, W0] = fct_outside_NaN(H0, U0, V0, W0, is_valid);
     % =================================================================== %
     
 end

@@ -36,19 +36,19 @@ clc
 % ======================================================================= %
 
 % Define model name
-EXP.experiment_name     = 'EXP_xxx';
+EXP.experiment_name     = 'EXP_1002';
 
 % Show control plot ('yes') or not ('no') --> no is faster for saving
-EXP.check_plot          = 'no';
+EXP.check_plot          = 'yes';
 
 % threshold value for outlier detection (default = 1)
-EXP.outlier.threshmed   = 1;
+EXP.outlier.threshmed   = 0.5;
 
 % estimated measurement noise level for outlier detection (default = 1)
-EXP.outlier.eps         = 1;
+EXP.outlier.eps         = 1e-1;
 
 % neighborhood radius for outlier detection: 1 = 3x3, 2 = 5x5 etc.
-EXP.outlier.neighbour   = 3;
+EXP.outlier.neighbour   = 5;
 
 % ======================================================================= %
 
@@ -71,6 +71,23 @@ EXP.outlier.neighbour   = 3;
     files(strncmp({files.name}, '.', 1)) = [];
     n = length(files);
 
+% LOCATE DISPLACEMENT COMPONENTS
+% ----------------------------------------------------------------------- %
+
+vc_struc_init = readimx(files(1).name);
+
+% search for correct places
+loc_u = fct_find_location(vc_struc_init,'U0');
+loc_v = fct_find_location(vc_struc_init,'V0');
+loc_h = fct_find_location(vc_struc_init,'TS:Height');
+loc_m = fct_find_location(vc_struc_init,'MASK');
+
+% check if it is a stereo set
+is_stereo = sum(ismember(vc_struc_init.Frames{1}.ComponentNames,'W0'));
+if is_stereo
+    loc_w = find(ismember(vc_struc_init.Frames{1}.ComponentNames,'W0'));
+end
+
 % RUN THROUGH FILES
 % ----------------------------------------------------------------------- %
 
@@ -79,7 +96,7 @@ tStart = tic;
 fct_print_statement_start
 fct_print_statement_cleaning
 
-for iRead = progress(1:n)
+for iRead = progress(n)
     
   % get step
     step_now = files(iRead).name;
@@ -88,37 +105,34 @@ for iRead = progress(1:n)
     vc_struc = readimx(step_now);
     
   % get needed components
-    U0 = vc_struc.Frames{1}.Components{1}.Planes{:};
-    V0 = vc_struc.Frames{1}.Components{2}.Planes{:};
-    W0 = vc_struc.Frames{1}.Components{5}.Planes{:};
-    H0 = vc_struc.Frames{1}.Components{6}.Planes{:};
+    U0 = vc_struc.Frames{1}.Components{loc_u}.Planes{:};
+    V0 = vc_struc.Frames{1}.Components{loc_v}.Planes{:};
+    W0 = vc_struc.Frames{1}.Components{loc_w}.Planes{:};
+    H0 = vc_struc.Frames{1}.Components{loc_h}.Planes{:};
     
-    is_valid = vc_struc.Frames{1}.Components{4}.Planes{:};
-    
-  % Define conservative mask based on is_valid
-    U_temp = fct_extract_data(U0, is_valid);
-    V_temp = fct_extract_data(V0, is_valid);
-    W_temp = fct_extract_data(W0, is_valid);
-    H_temp = fct_extract_data(H0, is_valid);
+  % prepare mask
+    M0 = logical(vc_struc.Frames{1}.Components{loc_m}.Planes{:});
+    is_valid = fct_prepare_mask(M0);
     
   % Clean extracted buffers   
-    [H_temp, U_temp, V_temp, Wtemp_] = fct_clean_raw_data(H_temp,...
-        U_temp, V_temp, W_temp, EXP);
+    [H_temp, U_temp, V_temp, W_temp] = fct_clean_raw_data(H0, U0, V0,...
+        W0, EXP, is_valid);
     
-  % Get height correction
+  % Height correction
     if iRead == 1
-        Dev = fct_correct_height(H_temp);
-        Dev = fct_reassign_values(Dev, is_valid);
+        [correction_plane, boundaries]  = fct_extract_data(H_temp, is_valid);
+        Dev     = fct_correct_height(correction_plane);
+        Dev_ext = fct_reassign_values(Dev, boundaries, H_temp);
     end
     
-  % Reassign cleaned output to original buffer size
-    U = fct_reassign_values(U_temp, is_valid);
-    V = fct_reassign_values(V_temp, is_valid);
-    W = fct_reassign_values(W_temp, is_valid);
-    H = fct_reassign_values(H_temp, is_valid) - Dev;
+  % Reassign cleaned output to new variables and clean up
+    U = U_temp;
+    V = V_temp;
+    W = W_temp;
+    H = H_temp;%- Dev_ext;
 
   % control_plot
-  fct_check_plot(EXP, H0, H, iRead)
+  fct_check_plot(EXP, V0, V, iRead)
     
   % Write new data back to .mat structure
     vc_struc.Frames{1}.Components{1}.Planes = U;
@@ -127,10 +141,10 @@ for iRead = progress(1:n)
     vc_struc.Frames{1}.Components{6}.Planes = H;
     
   % Write new data as vc structure
-    savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
-    save(savevar, 'vc_struc')
-    %writeimx(vc_struc, '/B' num2str(iRead,'%5.5d'))
-    clearvars savevar vc_struc
+%     savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
+%     save(savevar, 'vc_struc')
+%     %writeimx(vc_struc, '/B' num2str(iRead,'%5.5d'))
+%     clearvars savevar vc_struc
 end
 
 fun_print_statement_finished(tStart)

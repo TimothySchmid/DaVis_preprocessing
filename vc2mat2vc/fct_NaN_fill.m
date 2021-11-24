@@ -1,4 +1,4 @@
-function [H0, U0, V0, W0] = fct_NaN_fill(H0, U0, V0, W0)
+function [H0, U0, V0, W0] = fct_NaN_fill(H0, U0, V0, W0, is_valid)
 % fill in-mask nans ===================================================== %
 % Apply inpaint_nans
 
@@ -24,7 +24,11 @@ function [H0, U0, V0, W0] = fct_NaN_fill(H0, U0, V0, W0)
         w0 = fct_inpaint_NaNs(double(w0),method);
     end
     
-    %disp('no remaining nans')
+    % set outside zeros back to NaN!
+    h0(isnan(is_valid)) = NaN;
+    u0(isnan(is_valid)) = NaN;
+    v0(isnan(is_valid)) = NaN;
+    w0(isnan(is_valid)) = NaN;
     
     H0 = h0;
     U0 = u0;
