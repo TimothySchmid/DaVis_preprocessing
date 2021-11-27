@@ -39,7 +39,7 @@ clc
 EXP.experiment_name     = 'EXP_1002';
 
 % Show control plot ('yes') or not ('no') --> no is faster for saving
-EXP.check_plot          = 'yes';
+EXP.check_plot          = 'no';
 
 % threshold value for outlier detection (default = 1)
 EXP.outlier.threshmed   = 0.5;
@@ -137,10 +137,10 @@ for iRead = progress(1:n)
   fct_check_plot(EXP, V0, V, iRead)
     
   % Write new data back to .mat structure
-    vc_struc.Frames{1}.Components{1}.Planes = U;
-    vc_struc.Frames{1}.Components{2}.Planes = V;
-    vc_struc.Frames{1}.Components{5}.Planes = W;
-    vc_struc.Frames{1}.Components{6}.Planes = H;
+    vc_struc.Frames{1}.Components{loc_u}.Planes = U;
+    vc_struc.Frames{1}.Components{loc_v}.Planes = V;
+    vc_struc.Frames{1}.Components{loc_w}.Planes = W;
+    vc_struc.Frames{1}.Components{loc_h}.Planes = H;
     
   % Write new data as vc structure
     savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
