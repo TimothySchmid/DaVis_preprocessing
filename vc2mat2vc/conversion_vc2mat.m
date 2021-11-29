@@ -1,7 +1,7 @@
 %
 %--------------------------------------------------------------------------
 % FILE NAME:
-%   conversion_vc2mat2vc.m
+%   conversion_vc2mat.m
 %
 % DESCRIPTION
 %   Loads vc7 structure and takes data buffers for height, and displacement
@@ -9,7 +9,7 @@
 %   interpolation and linear height correction. 
 %
 % INPUT:
-%   - experiment_name
+%   - experiment_name --> gui select experiment main folder
 %
 %
 % ASSUMPTIONS AND LIMITATIONS:
@@ -36,7 +36,8 @@ clc
 % ======================================================================= %
 
 % Define model name
-EXP.experiment_name     = 'EXP_xxx';
+experiment_dir = uigetdir('..');
+[~, EXP.experiment_name, ~] = fileparts(experiment_dir);
 
 % Show control plot ('yes') or not ('no') --> no is faster for saving
 EXP.check_plot          = 'no';
@@ -52,28 +53,30 @@ EXP.outlier.neighbour   = 5;
 
 % ======================================================================= %
 
+
 % SET PATHS TO FUNCTIONS 
 % ----------------------------------------------------------------------- %
+parent_path = pwd;
+addpath(parent_path)
 
-    path_main = pwd;
-    parent_path = pwd;
-    addpath(parent_path)
-    addpath([parent_path, '/readimx-v2.1.8-osx'])
-    % addpath([parent_path, '/readimx-v2.1.9'])
-    experiment_dir = [path_main '/' EXP.experiment_name];
+if isunix
+    addpath([parent_path, '/readimx-v2.1.8-osx']) % Mac
+else
+    addpath([parent_path, '/readimx-v2.1.9'])     % Windows
+end
 
-    cd(parent_path)
-    mkdir([EXP.experiment_name, '_cleaned_data'])
-    path_cleaned_data = [parent_path '/' EXP.experiment_name '_cleaned_data'];
+cd(experiment_dir)
+mkdir 'incr_mat_disp'
+path_incr_mat_disp = [experiment_dir '/incr_mat_disp'];
+
+cd([experiment_dir '/vc'])
+files = dir('*.vc7');
+files(strncmp({files.name}, '.', 1)) = [];
+n = length(files);
+
     
-    cd(experiment_dir)
-    files = dir('*.vc7');
-    files(strncmp({files.name}, '.', 1)) = [];
-    n = length(files);
-
 % LOCATE DISPLACEMENT COMPONENTS
 % ----------------------------------------------------------------------- %
-
 vc_struc_init = readimx(files(1).name);
 
 % search for correct places
@@ -90,17 +93,45 @@ loc_h = fct_find_location(vc_struc_init,'TS:Height');
 loc_m = fct_find_location(vc_struc_init,'TS:isValid');
 
 
+% SCALING VALUES FOR COORDINATE SYSTEM
+% ----------------------------------------------------------------------- %
+[slope_x, offset_x, step_x] = fct_get_scaling(vc_struc_init, 'X');
+[slope_y, offset_y, step_y] = fct_get_scaling(vc_struc_init, 'Y');
+[slope_z, offset_z, step_z] = fct_get_scaling(vc_struc_init, 'Z');
+[slope_i, offset_i ] = fct_get_scaling(vc_struc_init, 'I');
+
+
+% ASSEMBLE COORDINATE SYSTEM
+% ----------------------------------------------------------------------- %
+dim = size(vc_struc_init.Frames{1}.Components{loc_u}.Planes{:});
+
+xcoords = slope_x * (linspace(0, dim(1), dim(1)) * step_x) + offset_x;
+ycoords = slope_y * (linspace(0, dim(2), dim(2)) * step_y) + offset_y;
+
+% write experiment data and coordinates
+savevar	= [experiment_dir '/coordinate_system'];
+save(savevar, 'xcoords', 'ycoords', 'slope*', 'offset*', 'step*', '-v7.3')
+  
+
+% WRITE META DATA
+% ----------------------------------------------------------------------- %
+EXP = fct_write_metadata(vc_struc_init, EXP);
+  
+clearvars vc_struc_init slope_* offset_* *coords dim savevar step_*...
+          is_stereo -except slope_i
+  
+      
 % RUN THROUGH FILES
 % ----------------------------------------------------------------------- %
-
-tStart = tic;
+tStart = tic;   
 
 fct_print_statement_start
-fct_print_statement_cleaning
+fct_print_statement('cleaning')
 
 for iRead = progress(1:n)
     
   % get step
+    cd([experiment_dir '/vc'])
     step_now = files(iRead).name;
     
   % get current .vc7 structure
@@ -122,32 +153,31 @@ for iRead = progress(1:n)
     
   % Height correction
     if iRead == 1
-        [correction_plane, boundaries]  = fct_extract_data(H_temp, is_valid);
-        Dev     = fct_correct_height(correction_plane);
-        Dev_ext = fct_reassign_values(Dev, boundaries, H_temp);
+        [correction_plane, boundaries] = fct_extract_data(H_temp, is_valid);
+        [Dev, fit_vals]                = fct_correct_height(correction_plane);
+         Dev_ext                       = fct_reassign_values(Dev, boundaries, H_temp);
+         EXP.HeightCoefficients        = fit_vals;
+         savevar = [experiment_dir '/meta_data'];
+         save(savevar, 'EXP', '-v7.3')
     end
     
-  % Reassign cleaned output to new variables and clean up
-    U = U_temp;
-    V = V_temp;
-    W = W_temp;
-    H = H_temp - Dev_ext;
+  % Scale new variables
+    Du =  single(U_temp * slope_i);
+    Dv =  single(V_temp * slope_i);
+    Dw =  single(W_temp * slope_i);
+    H  = single((H_temp - Dev_ext) * slope_i);
 
   % control_plot
-  fct_check_plot(EXP, V0, V, iRead)
+    fct_check_plot(EXP, H0, H, iRead)
     
-  % Write new data back to .mat structure
-    vc_struc.Frames{1}.Components{loc_u}.Planes = U;
-    vc_struc.Frames{1}.Components{loc_v}.Planes = V;
-    vc_struc.Frames{1}.Components{loc_w}.Planes = W;
-    vc_struc.Frames{1}.Components{loc_h}.Planes = H;
+  % write new data as 7.3 .mat file (can be read as hdf5 in python)
+    savevar	= [path_incr_mat_disp '/B' num2str(iRead,'%5.5d')];
+    save(savevar, 'Du', 'Dv', 'Dw', 'H', 'is_valid', '-v7.3')
+    cd([experiment_dir '/vc'])
     
-  % Write new data as vc structure
-    savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
-    save(savevar, 'vc_struc')
-    %writeimx(vc_struc, '/B' num2str(iRead,'%5.5d'))
-    clearvars savevar vc_struc
+  % clean up
+    clearvars *0 vc_struc step_now *_temp Dev fit_vals Du Dv Dw H savevar...
+                correction_plane boundaries is_valid
 end
 
 fun_print_statement_finished(tStart)
-cd ..

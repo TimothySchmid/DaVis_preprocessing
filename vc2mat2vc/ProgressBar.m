@@ -102,7 +102,7 @@ classdef ProgressBar < matlab.System
         TicObject;
         TimerObject;
         
-        MaxBarWidth = 80;
+        MaxBarWidth = 60;
         CurrentTitleState = '';
         CurrentFont;
     end
@@ -116,7 +116,7 @@ classdef ProgressBar < matlab.System
         NUM_CHARACTERS_SHIFT = 3;
         
         % The maximum length of the title string without banner cycling
-        MAX_TITLE_LENGTH = 20;
+        MAX_TITLE_LENGTH = 10;
         
         OVERRIDE_FONT_NAME = 'Courier New';
     end

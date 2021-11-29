@@ -1,4 +1,4 @@
-function Dev = fct_correct_height(H0)
+function [Dev, M] = fct_correct_height(H0)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 x_vec = linspace(0, size(H0,1), size(H0,1));
