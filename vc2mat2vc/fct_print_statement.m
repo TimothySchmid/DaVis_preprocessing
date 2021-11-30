@@ -23,6 +23,16 @@ switch statement
         fprintf('-----------------------------------------------\n')
         fprintf('\n \n')
         
+    case 'save'
+        fprintf('\nSaving ----------------------------------------\n')
+        fprintf('-----------------------------------------------\n')
+        fprintf('\n \n')
+        
+    case 'summation'
+        fprintf('\nMaterial displacement summation ---------------\n')
+        fprintf('-----------------------------------------------\n')
+        fprintf('\n \n')
+        
     otherwise
 end
 

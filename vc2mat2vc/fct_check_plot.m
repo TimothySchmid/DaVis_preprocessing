@@ -1,5 +1,5 @@
 function fct_check_plot(EXP, H0, H, iRead)
-%UNTITLED8 Summary of this function goes here
+%fct_check_plot --> show control plot to check interpolated data etc.
 %   Detailed explanation goes here
   switch EXP.check_plot
       case 'yes'
