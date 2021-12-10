@@ -13,11 +13,17 @@
 %
 %
 % ASSUMPTIONS AND LIMITATIONS:
-%   None
+%   There is a major issue with current MacOS due to library policies. The
+%   writeimx() .MEX file crashes on MacOS and an update from LaVision is
+%   being expected.
 %
-% For more information, see <a href="matlab: 
-% web('https://www.geo.unibe.ch')">Institute of Geological Sciences UNIBE</a>.
+%  For more information, see <a href="matlab:
+%  web('https://github.com/TimothySchmid/DaVis_preprocessing')
+%  ">Git hub repository</a>.
 %
+%  Latest DaVis readimx version for MacOS and Windows: <a href="matlab:
+%  web('https://www.lavision.de/en/downloads/software/matlab_add_ons.php')
+%  ">DaVis readimx</a>.
 %--------------------------------------------------------------------------
 
 % Author: Timothy Schmid, MSc., geology
@@ -25,8 +31,9 @@
 % Baltzerstrasse 1, Office 207
 % 3012 Bern, CH
 % email address: timothy.schmid@geo.unibe.ch
-% November 2021; Last revision: 22/11/2021 
-% * initial implementation
+% November 2021; Last revision: 10/12/2021 
+% Successfully tested on a Windows machine 64 bit using Windows 10 Pro
+% (Vers. 20H2) and MATLABR2020b
 
 close all;
 clear;
@@ -66,14 +73,11 @@ else
 end
 
 cd(experiment_dir)
-mkdir 'incr_mat_disp'
-path_incr_mat_disp = [experiment_dir '/incr_mat_disp'];
+mkdir 'vc_clean'
+path_clean = ([experiment_dir '/vc_clean']);
 
-cd(experiment_dir)
-mkdir 'height_data'
-path_height_data = [experiment_dir '/height_data'];
-
-cd([experiment_dir '/vc'])
+path_raw = ([experiment_dir '/vc']);
+cd(path_raw)
 files = dir('*.vc7');
 files(strncmp({files.name}, '.', 1)) = [];
 n = length(files);
@@ -94,7 +98,7 @@ if is_stereo
 end
 
 loc_h = fct_find_location(vc_struc_init,'TS:Height');
-loc_m = fct_find_location(vc_struc_init,'TS:isValid');
+loc_m = fct_find_location(vc_struc_init,'ENABLED');
 
 
 % RUN THROUGH FILES
@@ -106,6 +110,8 @@ fct_print_statement_start
 fct_print_statement_cleaning
 
 for iRead = progress(1:n)
+    
+    cd(path_raw);
     
   % get step
     step_now = files(iRead).name;
@@ -122,11 +128,11 @@ for iRead = progress(1:n)
   % create local "working variables"
     U0loc = U0{:};  V0loc = V0{:};  W0loc = W0{:};  H0loc = H0{:};
     
-    
   % prepare mask
     M0 = vc_struc.Frames{1}.Components{loc_m}.Planes;
     M0loc = logical(M0{:});
     is_valid = fct_prepare_mask(M0loc);
+    clearvars M0loc M0
     
   % Clean extracted buffers   
     [H_temp, U_temp, V_temp, W_temp] = fct_clean_raw_data(H0loc, U0loc,...
@@ -155,11 +161,11 @@ for iRead = progress(1:n)
     vc_struc.Frames{1}.Components{loc_h}.Planes = H;
     
   % Write new data as vc structure
-    savevar	= [path_cleaned_data '/B' num2str(iRead,'%5.5d')];
-    save(savevar, 'vc_struc')
-    %writeimx(vc_struc, ['/B' num2str(iRead,'%5.5d') '.vc7'])
-    clearvars savevar vc_struc
+    cd(path_clean)
+    writeimx(vc_struc, ['A' num2str(iRead,'%5.5d') '.vc7'])
+    clearvars vc_struc U0 V0 W0 H0 U0loc V0loc W0loc H0loc U V W H Dev...
+        U_temp V_temp W_temp H_temp 
 end
 
 fun_print_statement_finished(tStart)
-cd ..
+cd(parent_path)
