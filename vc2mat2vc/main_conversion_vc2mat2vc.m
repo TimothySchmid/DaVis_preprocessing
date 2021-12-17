@@ -68,6 +68,7 @@ addpath(parent_path)
 
 if isunix
     addpath([parent_path, '/readimx-v2.1.8-osx']) % Mac
+    warning('writeimx() does not work on all MacOS - MATLAB might crash')
 else
     addpath([parent_path, '/readimx-v2.1.9'])     % Windows
 end
