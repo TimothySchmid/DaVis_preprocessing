@@ -12,7 +12,7 @@ function fct_check_plot(EXP, H0, H, iRead)
           axis tight
           
           subplot(1,2,2)
-          pcolor(H); shading interp; axis equal; colorbar
+          pcolor(H{:}); shading interp; axis equal; colorbar
           title('corrected data')
           axis tight
           sgtitle(['Time step: ', num2str(iRead)])

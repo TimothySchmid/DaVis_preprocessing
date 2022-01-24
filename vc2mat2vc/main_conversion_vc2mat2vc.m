@@ -47,7 +47,7 @@ experiment_dir = uigetdir('..');
 [~, EXP.experiment_name, ~] = fileparts(experiment_dir);
 
 % Show control plot ('yes') or not ('no') --> no is faster for saving
-EXP.check_plot          = 'no';
+EXP.check_plot          = 'yes';
 
 % threshold value for outlier detection (default = 1)
 EXP.outlier.threshmed   = 0.5;
