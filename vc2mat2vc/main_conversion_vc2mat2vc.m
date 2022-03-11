@@ -151,6 +151,7 @@ for iRead = progress(1:n)
     V = {single(V_temp)};
     W = {single(W_temp)};
     H = {single(H_temp - Dev_ext)};
+    M = {single(is_valid)};
 
   % control_plot
   fct_check_plot(EXP, V0loc, V, iRead)
@@ -160,10 +161,11 @@ for iRead = progress(1:n)
     vc_struc.Frames{1}.Components{loc_v}.Planes = V;
     vc_struc.Frames{1}.Components{loc_w}.Planes = W;
     vc_struc.Frames{1}.Components{loc_h}.Planes = H;
+    vc_struc.Frames{1}.Components{loc_m}.Planes = M;
     
   % Write new data as vc structure
     cd(path_clean)
-    writeimx(vc_struc, ['A' num2str(iRead,'%5.5d') '.vc7'])
+    writeimx(vc_struc, ['B' num2str(iRead,'%5.5d') '.vc7'])
     clearvars vc_struc U0 V0 W0 H0 U0loc V0loc W0loc H0loc U V W H Dev...
         U_temp V_temp W_temp H_temp 
 end
